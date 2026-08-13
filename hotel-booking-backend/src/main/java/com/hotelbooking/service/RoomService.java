@@ -1,0 +1,93 @@
+package com.hotelbooking.service;
+
+import com.hotelbooking.dto.request.RoomRequest;
+import com.hotelbooking.dto.response.RoomResponse;
+import com.hotelbooking.entity.Room;
+import com.hotelbooking.repository.RoomRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class RoomService {
+
+    private final RoomRepository roomRepository;
+
+    // ── Admin: Create room ──────────────────────────────────────────────
+    public RoomResponse createRoom(RoomRequest request) {
+        if (roomRepository.findByRoomNumber(request.getRoomNumber()).isPresent()) {
+            throw new RuntimeException("Room number already exists");
+        }
+        Room room = Room.builder()
+                .roomNumber(request.getRoomNumber())
+                .type(request.getType())
+                .pricePerNight(request.getPricePerNight())
+                .capacity(request.getCapacity())
+                .description(request.getDescription())
+                .amenities(request.getAmenities())
+                .isAvailable(request.isAvailable())
+                .build();
+        return mapToResponse(roomRepository.save(room));
+    }
+
+    // ── Admin: Update room ──────────────────────────────────────────────
+    public RoomResponse updateRoom(Long id, RoomRequest request) {
+        Room room = roomRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Room not found"));
+        room.setRoomNumber(request.getRoomNumber());
+        room.setType(request.getType());
+        room.setPricePerNight(request.getPricePerNight());
+        room.setCapacity(request.getCapacity());
+        room.setDescription(request.getDescription());
+        room.setAmenities(request.getAmenities());
+        room.setAvailable(request.isAvailable());
+        return mapToResponse(roomRepository.save(room));
+    }
+
+    // ── Admin: Delete room ──────────────────────────────────────────────
+    public void deleteRoom(Long id) {
+        Room room = roomRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Room not found"));
+        roomRepository.delete(room);
+    }
+
+    // ── Public: Get all rooms ───────────────────────────────────────────
+    public List<RoomResponse> getAllRooms() {
+        return roomRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    // ── Public: Get room by id ──────────────────────────────────────────
+    public RoomResponse getRoomById(Long id) {
+        Room room = roomRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Room not found"));
+        return mapToResponse(room);
+    }
+
+    // ── Public: Search available rooms ─────────────────────────────────
+    public List<RoomResponse> getAvailableRooms() {
+        return roomRepository.findByIsAvailableTrue()
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    // ── Mapper ──────────────────────────────────────────────────────────
+    private RoomResponse mapToResponse(Room room) {
+        return RoomResponse.builder()
+                .id(room.getId())
+                .roomNumber(room.getRoomNumber())
+                .type(room.getType())
+                .pricePerNight(room.getPricePerNight())
+                .capacity(room.getCapacity())
+                .description(room.getDescription())
+                .amenities(room.getAmenities())
+                .isAvailable(room.isAvailable())
+                .build();
+    }
+}
