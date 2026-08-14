@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
-function LoginPage() {
+function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -12,10 +12,19 @@ function LoginPage() {
     e.preventDefault();
     try {
       const response = await api.post("/auth/login", { email, password });
+      
+      // Check if user has the admin role before proceeding
+      if (response.data.role !== "ADMIN") {
+        setError("Not authorized as admin");
+        return;
+      }
+
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("role", response.data.role);
       localStorage.setItem("email", response.data.email);
-      navigate('/rooms'); 
+      
+      // Redirect strictly to the admin dashboard
+      navigate('/admin/dashboard'); 
     } catch (err) {
       setError("Invalid email or password");
     }
@@ -23,7 +32,7 @@ function LoginPage() {
 
   return (
     <div className="login-container">
-      <h2>Login</h2>
+      <h2>Admin Login</h2>
       {error && <p className="error-message">{error}</p>}
       <input
         type="text"
@@ -42,4 +51,4 @@ function LoginPage() {
   );
 }
 
-export default LoginPage;
+export default AdminLoginPage;
