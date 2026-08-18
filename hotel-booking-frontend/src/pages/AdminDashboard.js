@@ -85,11 +85,13 @@ function AdminDashboard() {
   const filteredBookings = bookings.filter((booking) => {
     if (filter === "CANCELLED") return booking.status === "CANCELLED";
     // For standard filters, filter out cancelled bookings so they don't pollute active lists
-    if (booking.status === "CANCELLED") return false; 
+    if (booking.status === "CANCELLED") return false;
     return true;
   });
   // 1. THIS IS THE FIX: Keep guest bookings locked strictly to non-cancelled items
-  const allGuestActiveBookings = bookings.filter((b) => b.status !== "CANCELLED");
+  const allGuestActiveBookings = bookings.filter(
+    (b) => b.status !== "CANCELLED",
+  );
 
   // 2. This filter is used exclusively by your bottom room management section
   const filteredRooms = rooms.filter((room) => {
@@ -98,29 +100,75 @@ function AdminDashboard() {
     return true;
   });
 
-
-
-return (
+  return (
     <div className="admin-dashboard-container">
       <h2 className="section-title">Admin Dashboard</h2>
 
       {/* Section 1: Add Room Form */}
       <section style={{ marginBottom: "48px" }}>
         <h3 className="section-title">Add New Room</h3>
-        {formSuccess && <p style={{ color: "green", marginBottom: "12px" }}>✅ {formSuccess}</p>}
-        {formError && <p style={{ color: "red", marginBottom: "12px" }}>❌ {formError}</p>}
+        {formSuccess && (
+          <p style={{ color: "green", marginBottom: "12px" }}>
+            ✅ {formSuccess}
+          </p>
+        )}
+        {formError && (
+          <p style={{ color: "red", marginBottom: "12px" }}>❌ {formError}</p>
+        )}
 
-        <form onSubmit={handleAddRoom} style={{ display: "flex", flexDirection: "column", maxWidth: "450px", gap: "12px" }}>
-          <input type="text" placeholder="Room Number" value={roomNumber} onChange={(e) => setRoomNumber(e.target.value)} required />
-          <select value={type} onChange={(e) => setType(e.target.value)} required>
+        <form
+          onSubmit={handleAddRoom}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            maxWidth: "450px",
+            gap: "12px",
+          }}
+        >
+          <input
+            type="text"
+            placeholder="Room Number"
+            value={roomNumber}
+            onChange={(e) => setRoomNumber(e.target.value)}
+            required
+          />
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+            required
+          >
             <option value="SINGLE">SINGLE</option>
             <option value="DOUBLE">DOUBLE</option>
             <option value="SUITE">SUITE</option>
           </select>
-          <input type="number" placeholder="Price Per Night ($)" value={pricePerNight} onChange={(e) => setPricePerNight(e.target.value)} required />
-          <input type="number" placeholder="Capacity (persons)" value={capacity} onChange={(e) => setCapacity(e.target.value)} required />
-          <textarea placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} required rows={3} />
-          <input type="text" placeholder="Amenities (e.g. WiFi, TV, AC)" value={amenities} onChange={(e) => setAmenities(e.target.value)} required />
+          <input
+            type="number"
+            placeholder="Price Per Night ($)"
+            value={pricePerNight}
+            onChange={(e) => setPricePerNight(e.target.value)}
+            required
+          />
+          <input
+            type="number"
+            placeholder="Capacity (persons)"
+            value={capacity}
+            onChange={(e) => setCapacity(e.target.value)}
+            required
+          />
+          <textarea
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+            rows={3}
+          />
+          <input
+            type="text"
+            placeholder="Amenities (e.g. WiFi, TV, AC)"
+            value={amenities}
+            onChange={(e) => setAmenities(e.target.value)}
+            required
+          />
           <button type="submit">➕ Add Room</button>
         </form>
       </section>
@@ -154,11 +202,19 @@ return (
           <button onClick={() => setFilter("ALL")}>All Rooms</button>
           <button onClick={() => setFilter("AVAILABLE")}>Available</button>
           <button onClick={() => setFilter("BOOKED")}>Booked</button>
-          <button onClick={() => setFilter("CANCELLED")}>Cancelled Bookings</button>
+          <button onClick={() => setFilter("CANCELLED")}>
+            Cancelled Bookings
+          </button>
         </div>
 
         <h4 style={{ marginBottom: "16px", color: "#666" }}>
-          {filter === "ALL" ? "All Rooms" : filter === "AVAILABLE" ? "Available Rooms" : filter === "BOOKED" ? "Booked Rooms" : "Cancelled Booking History"}
+          {filter === "ALL"
+            ? "All Rooms"
+            : filter === "AVAILABLE"
+              ? "Available Rooms"
+              : filter === "BOOKED"
+                ? "Booked Rooms"
+                : "Cancelled Booking History"}
         </h4>
 
         {filter === "CANCELLED" ? (
@@ -191,8 +247,8 @@ return (
                       room.type === "SINGLE"
                         ? "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400"
                         : room.type === "DOUBLE"
-                        ? "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400"
-                        : "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400"
+                          ? "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400"
+                          : "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400"
                     }
                     alt={room.type}
                   />
@@ -202,7 +258,11 @@ return (
                     <p>👥 {room.capacity} persons</p>
                     <p>✨ {room.amenities}</p>
                     <p className="price">${room.pricePerNight} / night</p>
-                    <p className={room.available ? "status-available" : "status-booked"}>
+                    <p
+                      className={
+                        room.available ? "status-available" : "status-booked"
+                      }
+                    >
                       ● {room.available ? "Available" : "Booked"}
                     </p>
                   </div>

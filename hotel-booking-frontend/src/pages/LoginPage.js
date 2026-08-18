@@ -7,7 +7,17 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
+  const validate = () => {
+    if (!email.trim() || !email.includes("@")) {
+      setError("Valid email is required");
+      return false;
+    }
+    if (!password.trim()) {
+      setError("Password is required");
+      return false;
+    }
+    return true;
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -15,7 +25,7 @@ function LoginPage() {
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("role", response.data.role);
       localStorage.setItem("email", response.data.email);
-      navigate('/rooms'); 
+      navigate("/rooms");
     } catch (err) {
       setError("Invalid email or password");
     }

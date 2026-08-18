@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 function RegisterPage() {
@@ -10,8 +10,25 @@ function RegisterPage() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const validate = () => {
+    if (!name.trim()) {
+      setError("Name is required");
+      return false;
+    }
+    if (!email.trim() || !email.includes("@")) {
+      setError("Valid email is required");
+      return false;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
     try {
       const response = await api.post("/auth/register", {
         name,
@@ -23,7 +40,7 @@ function RegisterPage() {
       localStorage.setItem("name", response.data.name);
       localStorage.setItem("email", response.data.email);
       localStorage.setItem("role", response.data.role);
-      navigate('/rooms'); 
+      navigate("/rooms");
     } catch (err) {
       setError("Invalid");
     }
@@ -53,15 +70,15 @@ function RegisterPage() {
         placeholder="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-         autoComplete="new-password"
+        autoComplete="new-password"
       />
- <input
+      <input
         type="text"
         placeholder="role"
         value={"GUEST"}
         onChange={(e) => setRole(e.target.value)}
       />
-      
+
       <button onClick={handleSubmit}>Register</button>
     </div>
   );

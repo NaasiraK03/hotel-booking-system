@@ -33,7 +33,9 @@ function RoomsPage() {
   }, []);
 
   const handleCancel = async (bookingId) => {
-    const confirmCancel = window.confirm("Are you sure you want to cancel this booking?");
+    const confirmCancel = window.confirm(
+      "Are you sure you want to cancel this booking?",
+    );
     if (!confirmCancel) return;
 
     try {
@@ -50,8 +52,8 @@ function RoomsPage() {
   // Filter lists in memory before rendering
   //const availableOnlyRooms = rooms.filter((room) => room.available);
   const filteredRooms = rooms
-  .filter(room => room.available)
-  .filter(room => filter === "ALL" || room.type === filter);
+    .filter((room) => room.available)
+    .filter((room) => filter === "ALL" || room.type === filter);
   const activeBookings = bookings.filter((b) => b.status !== "CANCELLED");
   const cancelledBookings = bookings.filter((b) => b.status === "CANCELLED");
 
@@ -61,32 +63,61 @@ function RoomsPage() {
       <div className="hero">
         <h1>Find Your Perfect Room</h1>
         <p>Luxury stays at unbeatable prices</p>
-      </div><div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
-  <button onClick={() => setFilter("ALL")} 
-    style={{ padding: "8px 20px", borderRadius: "20px", border: "1px solid #c8a96e", 
-             backgroundColor: filter === "ALL" ? "#c8a96e" : "white", 
-             color: filter === "ALL" ? "white" : "#c8a96e", cursor: "pointer" }}>
-    All
-  </button>
-  <button onClick={() => setFilter("SINGLE")}
-    style={{ padding: "8px 20px", borderRadius: "20px", border: "1px solid #c8a96e",
-             backgroundColor: filter === "SINGLE" ? "#c8a96e" : "white",
-             color: filter === "SINGLE" ? "white" : "#c8a96e", cursor: "pointer" }}>
-    Single
-  </button>
-  <button onClick={() => setFilter("DOUBLE")}
-    style={{ padding: "8px 20px", borderRadius: "20px", border: "1px solid #c8a96e",
-             backgroundColor: filter === "DOUBLE" ? "#c8a96e" : "white",
-             color: filter === "DOUBLE" ? "white" : "#c8a96e", cursor: "pointer" }}>
-    Double
-  </button>
-  <button onClick={() => setFilter("SUITE")}
-    style={{ padding: "8px 20px", borderRadius: "20px", border: "1px solid #c8a96e",
-             backgroundColor: filter === "SUITE" ? "#c8a96e" : "white",
-             color: filter === "SUITE" ? "white" : "#c8a96e", cursor: "pointer" }}>
-    Suite
-  </button>
-</div>
+      </div>
+      <div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
+        <button
+          onClick={() => setFilter("ALL")}
+          style={{
+            padding: "8px 20px",
+            borderRadius: "20px",
+            border: "1px solid #c8a96e",
+            backgroundColor: filter === "ALL" ? "#c8a96e" : "white",
+            color: filter === "ALL" ? "white" : "#c8a96e",
+            cursor: "pointer",
+          }}
+        >
+          All
+        </button>
+        <button
+          onClick={() => setFilter("SINGLE")}
+          style={{
+            padding: "8px 20px",
+            borderRadius: "20px",
+            border: "1px solid #c8a96e",
+            backgroundColor: filter === "SINGLE" ? "#c8a96e" : "white",
+            color: filter === "SINGLE" ? "white" : "#c8a96e",
+            cursor: "pointer",
+          }}
+        >
+          Single
+        </button>
+        <button
+          onClick={() => setFilter("DOUBLE")}
+          style={{
+            padding: "8px 20px",
+            borderRadius: "20px",
+            border: "1px solid #c8a96e",
+            backgroundColor: filter === "DOUBLE" ? "#c8a96e" : "white",
+            color: filter === "DOUBLE" ? "white" : "#c8a96e",
+            cursor: "pointer",
+          }}
+        >
+          Double
+        </button>
+        <button
+          onClick={() => setFilter("SUITE")}
+          style={{
+            padding: "8px 20px",
+            borderRadius: "20px",
+            border: "1px solid #c8a96e",
+            backgroundColor: filter === "SUITE" ? "#c8a96e" : "white",
+            color: filter === "SUITE" ? "white" : "#c8a96e",
+            cursor: "pointer",
+          }}
+        >
+          Suite
+        </button>
+      </div>
 
       <div className="page-container">
         {/* SECTION 1 — AVAILABLE ROOMS */}
@@ -103,8 +134,8 @@ function RoomsPage() {
                     room.type === "SINGLE"
                       ? "https://unsplash.com" // Modern City Single Room
                       : room.type === "DOUBLE"
-                      ? "https://unsplash.com" // Luxury Couch Double Room
-                      : "https://unsplash.com" // Wood Tropical Villa Suite
+                        ? "https://unsplash.com" // Luxury Couch Double Room
+                        : "https://unsplash.com" // Wood Tropical Villa Suite
                   }
                   alt={room.type}
                 />
@@ -113,7 +144,7 @@ function RoomsPage() {
                   <p>🛏 Type: {room.type}</p>
                   <p>👥 Capacity: {room.capacity} persons</p>
                   <p>✨ {room.amenities}</p>
-                  <p className="price">${room.pricePerNight} / night</p>
+                  <p className="price">₹{room.pricePerNight} / night</p>
                   <p className="status-available">● Available</p>
                   <button
                     className="btn-book"
@@ -140,7 +171,7 @@ function RoomsPage() {
                 <p>🛏 Type: {booking.roomType}</p>
                 <p>📅 Check-in: {booking.checkInDate}</p>
                 <p>📅 Check-out: {booking.checkOutDate}</p>
-                <p className="price">Total: ${booking.totalPrice}</p>
+                <p className="price">Total: ₹{booking.totalPrice}</p>
                 <p className="status-available">● {booking.status}</p>
                 <button
                   className="btn-cancel"
@@ -165,7 +196,7 @@ function RoomsPage() {
                 <p>🏨 Room: {booking.roomNumber}</p>
                 <p>📅 Check-in: {booking.checkInDate}</p>
                 <p>📅 Check-out: {booking.checkOutDate}</p>
-                <p className="price">Total: ${booking.totalPrice}</p>
+                <p className="price">Total: ₹{booking.totalPrice}</p>
                 <p className="status-booked">● CANCELLED</p>
                 <button className="btn-cancel" disabled>
                   Cancelled
