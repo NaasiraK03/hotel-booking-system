@@ -23,6 +23,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     // ── Create booking ──────────────────────────────────────────────────
     public BookingResponse createBooking(BookingRequest request, String email) {
@@ -59,7 +60,9 @@ public class BookingService {
         room.setAvailable(false);
         roomRepository.save(room);
 
-        return mapToResponse(bookingRepository.save(booking));
+        Booking savedBooking = bookingRepository.save(booking);
+        emailService.sendBookingConfirmation(savedBooking);
+        return mapToResponse(savedBooking);
     }
 
     // ── Get booking by id ───────────────────────────────────────────────
