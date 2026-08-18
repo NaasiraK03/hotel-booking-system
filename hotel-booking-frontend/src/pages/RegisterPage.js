@@ -38,6 +38,7 @@ function RegisterPage() {
         placeholder="name"
         value={name}
         onChange={(e) => setName(e.target.value)}
+        autoComplete="off"
       />
 
       <input
@@ -45,12 +46,14 @@ function RegisterPage() {
         placeholder="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
+        autoComplete="off"
       />
       <input
         type="password"
         placeholder="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
+         autoComplete="new-password"
       />
  <input
         type="text"

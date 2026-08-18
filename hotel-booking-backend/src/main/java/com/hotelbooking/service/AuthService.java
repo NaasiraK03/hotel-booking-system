@@ -57,4 +57,6 @@ public class AuthService {
         return new AuthResponse(token, user.getEmail(), user.getRole(),
                 "Login successful");
     }
+
+
 }

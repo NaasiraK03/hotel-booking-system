@@ -16,7 +16,7 @@ function BookingPage() {
       const response = await api.post("/bookings", {
         checkInDate,
         checkOutDate,
-        roomId,
+        roomId : Number(roomId),
       });
       navigate("/dashboard");
     } catch (err) {

@@ -19,21 +19,20 @@ function DashboardPage() {
       alert("Failed to cancel booking. Please try again.");
     }
   };
- const fetchBookings = async () => {
-      try {
-        const response = await api.get("/bookings/my");
-        // Axios stores the server response data inside the .data property
-        setBookings(response.data);
-      } catch (error) {
-        console.error("Error fetching bookings data:", error);
-      }
-    };
+  const fetchBookings = async () => {
+    try {
+      const response = await api.get("/bookings/my");
+      // Axios stores the server response data inside the .data property
+      setBookings(response.data);
+    } catch (error) {
+      console.error("Error fetching bookings data:", error);
+    }
+  };
 
   // 2. useEffect to call api.get('/bookings') when component loads
   //    and store result in bookings state
   useEffect(() => {
     fetchBookings();
-   
   }, []); // Empty array ensures this runs exactly once when the page loads
 
   return (
@@ -60,7 +59,17 @@ function DashboardPage() {
               >
                 {booking.status}
               </p>
-              <button onClick={() => handleCancel(booking.id)}>Cancel</button>
+              <button
+                onClick={() => handleCancel(booking.id)}
+                disabled={booking.status === "CANCELLED"}
+                style={{
+                  backgroundColor: booking.status === "CANCELLED" ? "#ccc" : "",
+                  cursor:
+                    booking.status === "CANCELLED" ? "not-allowed" : "pointer",
+                }}
+              >
+                {booking.status === "CANCELLED" ? "Cancelled" : "Cancel"}
+              </button>
             </div>
           ))
         )}
