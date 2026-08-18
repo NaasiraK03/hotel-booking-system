@@ -5,6 +5,7 @@ import api from "../services/api";
 function RoomsPage() {
   const [rooms, setRooms] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [filter, setFilter] = useState("ALL");
   const navigate = useNavigate();
 
   // Helper functions to fetch data
@@ -47,7 +48,10 @@ function RoomsPage() {
   };
 
   // Filter lists in memory before rendering
-  const availableOnlyRooms = rooms.filter((room) => room.available);
+  //const availableOnlyRooms = rooms.filter((room) => room.available);
+  const filteredRooms = rooms
+  .filter(room => room.available)
+  .filter(room => filter === "ALL" || room.type === filter);
   const activeBookings = bookings.filter((b) => b.status !== "CANCELLED");
   const cancelledBookings = bookings.filter((b) => b.status === "CANCELLED");
 
@@ -57,16 +61,41 @@ function RoomsPage() {
       <div className="hero">
         <h1>Find Your Perfect Room</h1>
         <p>Luxury stays at unbeatable prices</p>
-      </div>
+      </div><div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
+  <button onClick={() => setFilter("ALL")} 
+    style={{ padding: "8px 20px", borderRadius: "20px", border: "1px solid #c8a96e", 
+             backgroundColor: filter === "ALL" ? "#c8a96e" : "white", 
+             color: filter === "ALL" ? "white" : "#c8a96e", cursor: "pointer" }}>
+    All
+  </button>
+  <button onClick={() => setFilter("SINGLE")}
+    style={{ padding: "8px 20px", borderRadius: "20px", border: "1px solid #c8a96e",
+             backgroundColor: filter === "SINGLE" ? "#c8a96e" : "white",
+             color: filter === "SINGLE" ? "white" : "#c8a96e", cursor: "pointer" }}>
+    Single
+  </button>
+  <button onClick={() => setFilter("DOUBLE")}
+    style={{ padding: "8px 20px", borderRadius: "20px", border: "1px solid #c8a96e",
+             backgroundColor: filter === "DOUBLE" ? "#c8a96e" : "white",
+             color: filter === "DOUBLE" ? "white" : "#c8a96e", cursor: "pointer" }}>
+    Double
+  </button>
+  <button onClick={() => setFilter("SUITE")}
+    style={{ padding: "8px 20px", borderRadius: "20px", border: "1px solid #c8a96e",
+             backgroundColor: filter === "SUITE" ? "#c8a96e" : "white",
+             color: filter === "SUITE" ? "white" : "#c8a96e", cursor: "pointer" }}>
+    Suite
+  </button>
+</div>
 
       <div className="page-container">
         {/* SECTION 1 — AVAILABLE ROOMS */}
         <h2 className="section-title">Available Rooms</h2>
         <div className="rooms-grid">
-          {availableOnlyRooms.length === 0 ? (
+          {filteredRooms.length === 0 ? (
             <p>No rooms available at the moment.</p>
           ) : (
-            availableOnlyRooms.map((room) => (
+            filteredRooms.map((room) => (
               <div className="room-card" key={room.id}>
                 <img
                   className="room-card-image"
