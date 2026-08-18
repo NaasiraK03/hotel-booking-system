@@ -41,6 +41,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/rooms/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/bookings/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/payments/**").hasAnyRole("GUEST", "ADMIN")
