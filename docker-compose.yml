@@ -3,29 +3,39 @@ version: '3.8'
 services:
   db:
     image: postgres:17
-    container_name: hotel_booking_db
+    container_name: hotel_postgres
     environment:
       POSTGRES_DB: hotel_booking_db
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root@123
+      POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
     build:
       context: ./hotel-booking-backend
       dockerfile: Dockerfile
-    container_name: hotel_booking_app
+    container_name: hotel_app
     ports:
       - "8080:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/hotel_booking_db
       SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: root@123
+      SPRING_DATASOURCE_PASSWORD: postgres
+      JWT_SECRET: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      JWT_EXPIRATION: 86400000
+      MAIL_USERNAME:
+      MAIL_PASSWORD:
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
 volumes:
   postgres_data:

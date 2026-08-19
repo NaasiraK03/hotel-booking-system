@@ -25,6 +25,10 @@ spring:
           auth: true
           starttls:
             enable: true
+    management:
+      health:
+        mail:
+          enabled: false
 
 server:
   port: ${PORT:8080}
