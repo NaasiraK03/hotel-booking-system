@@ -54,7 +54,7 @@ function AdminDashboard() {
 
     try {
       await api.post("/rooms/admin", roomData);
-      setFormSuccess(`Room ${roomNumber} added successfully!`);
+      setFormSuccess(`Room ₹{roomNumber} added successfully!`);
 
       // Clear form inputs
       setRoomNumber("");
@@ -102,8 +102,9 @@ function AdminDashboard() {
 
   return (
     <div className="admin-dashboard-container">
-      <h2 className="section-title">Admin Dashboard</h2>
-
+   <h2 className="section-title" style={{ display: "block", textAlign: "center", width: "100%" }}>
+    Admin Dashboard
+</h2>
       {/* Section 1: Add Room Form */}
       <section style={{ marginBottom: "48px" }}>
         <h3 className="section-title">Add New Room</h3>
@@ -143,10 +144,11 @@ function AdminDashboard() {
           </select>
           <input
             type="number"
-            placeholder="Price Per Night ($)"
+            placeholder="Price Per Night (₹)"
             value={pricePerNight}
             onChange={(e) => setPricePerNight(e.target.value)}
             required
+            min="0"
           />
           <input
             type="number"
@@ -241,23 +243,13 @@ function AdminDashboard() {
             ) : (
               filteredRooms.map((room) => (
                 <div className="room-card" key={room.id}>
-                  <img
-                    className="room-card-image"
-                    src={
-                      room.type === "SINGLE"
-                        ? "https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400"
-                        : room.type === "DOUBLE"
-                          ? "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=400"
-                          : "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400"
-                    }
-                    alt={room.type}
-                  />
+                
                   <div className="room-card-body">
                     <h3>Room {room.roomNumber}</h3>
                     <p>🛏 {room.type}</p>
                     <p>👥 {room.capacity} persons</p>
                     <p>✨ {room.amenities}</p>
-                    <p className="price">${room.pricePerNight} / night</p>
+                    <p className="price">₹{room.pricePerNight} / night</p>
                     <p
                       className={
                         room.available ? "status-available" : "status-booked"
