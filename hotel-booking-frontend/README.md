@@ -72,3 +72,5 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 ## Live Demo
 Backend API: https://hotel-booking-system-production-9753.up.railway.app
 Swagger UI: https://hotel-booking-system-production-9753.up.railway.app/swagger-ui/index.html
+## Known Limitations
+- Email confirmation works locally via Gmail SMTP. On Railway free tier, outbound SMTP port 587 is blocked.
