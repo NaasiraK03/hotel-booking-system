@@ -59,11 +59,7 @@ function RoomsPage() {
 
   return (
     <div>
-      {/* Hero Banner */}
-      <div className="hero">
-        <h1>Find Your Perfect Room</h1>
-        <p>Luxury stays at unbeatable prices</p>
-      </div>
+      <div style={{ marginBottom: "20px", marginTop: "20px", display: "flex", gap: "10px" }}></div>
       <div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
         <button
           onClick={() => setFilter("ALL")}
@@ -128,17 +124,20 @@ function RoomsPage() {
           ) : (
             filteredRooms.map((room) => (
               <div className="room-card" key={room.id}>
-                <img
-                  className="room-card-image"
-                  src={
-                    room.type === "SINGLE"
-                      ? "https://unsplash.com" // Modern City Single Room
-                      : room.type === "DOUBLE"
-                        ? "https://unsplash.com" // Luxury Couch Double Room
-                        : "https://unsplash.com" // Wood Tropical Villa Suite
-                  }
-                  alt={room.type}
-                />
+               <div style={{
+    height: "80px",
+    background: room.type === "SINGLE" ? "#1a1a2e" :
+                room.type === "DOUBLE" ? "#c8a96e" : "#2d2d44",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "white",
+    fontSize: "1.1rem",
+    fontWeight: "bold",
+    letterSpacing: "2px"
+}}>
+    {room.type}
+</div>
                 <div className="room-card-body">
                   <h3>Room {room.roomNumber}</h3>
                   <p>🛏 Type: {room.type}</p>
