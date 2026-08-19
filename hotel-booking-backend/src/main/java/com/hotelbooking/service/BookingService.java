@@ -61,7 +61,16 @@ public class BookingService {
         roomRepository.save(room);
 
         Booking savedBooking = bookingRepository.save(booking);
-        emailService.sendBookingConfirmation(savedBooking);
+        emailService.sendBookingConfirmation(
+                savedBooking.getGuest().getEmail(),
+                savedBooking.getGuest().getName(),
+                savedBooking.getBookingReference(),
+                savedBooking.getRoom().getRoomNumber(),
+                savedBooking.getRoom().getType(),
+                savedBooking.getCheckInDate().toString(),
+                savedBooking.getCheckOutDate().toString(),
+                savedBooking.getTotalPrice()
+        );
         return mapToResponse(savedBooking);
     }
 
