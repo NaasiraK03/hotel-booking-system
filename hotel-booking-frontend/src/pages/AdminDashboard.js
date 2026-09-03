@@ -1,6 +1,35 @@
 import { useState, useEffect } from "react";
 import api from "../services/api";
-
+const Pagination = ({ current, total, onPageChange }) => {
+  if (total <= 1) return null;
+  return (
+    <div className="pagination">
+      <button
+        className="page-btn"
+        onClick={() => onPageChange(current - 1)}
+        disabled={current === 0}
+      >
+        ← Prev
+      </button>
+      {[...Array(total)].map((_, i) => (
+        <button
+          key={i}
+          className={`page-btn ${current === i ? "active" : ""}`}
+          onClick={() => onPageChange(i)}
+        >
+          {i + 1}
+        </button>
+      ))}
+      <button
+        className="page-btn"
+        onClick={() => onPageChange(current + 1)}
+        disabled={current === total - 1}
+      >
+        Next →
+      </button>
+    </div>
+  );
+};
 function AdminDashboard() {
   // Add Room form state
   const [roomNumber, setRoomNumber] = useState("");
@@ -22,28 +51,85 @@ function AdminDashboard() {
   const [walkInError, setWalkInError] = useState("");
 
   // Data state
-  const [bookings, setBookings] = useState([]);
+ const [totalRoomPages, setTotalRoomPages] = useState(0);
+const [currentRoomPage, setCurrentRoomPage] = useState(0);
+const [totalRooms, setTotalRooms] = useState(0);
   const [rooms, setRooms] = useState([]);
   const [bookingsError, setBookingsError] = useState("");
   const [roomFilter, setRoomFilter] = useState("ALL");
   const [activeTab, setActiveTab] = useState("bookings");
 
-  useEffect(() => { fetchBookings(); fetchRooms(); }, []);
+useEffect(() => {
+  fetchActiveBookings(0);
+  fetchCancelledBookings(0);
+  fetchCancellationRequests(0);
+  fetchTotalBookings();
+  fetchRooms(0);
+}, []);
 
-  const fetchBookings = async () => {
-    try {
-      const response = await api.get("/bookings/admin/all");
-      setBookings(response.data);
-    } catch (err) { setBookingsError("Failed to fetch bookings."); }
-  };
+const fetchActiveBookings = async (page = 0) => {
+  try {
+    const response = await api.get(
+      `/bookings/admin/all?page=${page}&size=10&status=CONFIRMED&sortBy=createdAt&direction=desc`
+    );
+    setActiveBookings(response.data.content);
+    setActiveBookingsTotal(response.data.totalElements);
+    setActiveBookingsPages(response.data.totalPages);
+    setActiveBookingsPage(page);
+  } catch (err) { setBookingsError("Failed to fetch bookings."); }
+};
+const fetchCancelledBookings = async (page = 0) => {
+  try {
+    const response = await api.get(
+      `/bookings/admin/all?page=${page}&size=10&status=CANCELLED&sortBy=createdAt&direction=desc`
+    );
+    setCancelledBookings(response.data.content);
+    setCancelledPages(response.data.totalPages);
+    setCancelledPage(page);
+  } catch (err) { console.error(err); }
+};
+const fetchCancellationRequests = async (page = 0) => {
+  try {
+    const response = await api.get(
+      `/bookings/admin/all?page=${page}&size=10&status=CANCELLATION_REQUESTED&sortBy=createdAt&direction=desc`
+    );
+    setCancellationRequests(response.data.content);
+    setRequestsPages(response.data.totalPages);
+    setRequestsPage(page);
+  } catch (err) { console.error(err); }
+};
+const fetchTotalBookings = async () => {
+  try {
+    const response = await api.get(`/bookings/admin/all?page=0&size=1`);
+    setTotalBookings(response.data.totalElements);
+  } catch (err) { console.error(err); }
+};
+const [activeBookings, setActiveBookings] = useState([]);
+const [activeBookingsTotal, setActiveBookingsTotal] = useState(0);
+const [activeBookingsPages, setActiveBookingsPages] = useState(0);
+const [activeBookingsPage, setActiveBookingsPage] = useState(0);
 
-  const fetchRooms = async () => {
-    try {
-      const response = await api.get("/rooms");
-      setRooms(response.data);
-    } catch (error) { console.error("Error fetching rooms:", error); }
-  };
+const [cancelledBookings, setCancelledBookings] = useState([]);
+const [cancelledPages, setCancelledPages] = useState(0);
+const [cancelledPage, setCancelledPage] = useState(0);
 
+const [cancellationRequests, setCancellationRequests] = useState([]);
+const [requestsPages, setRequestsPages] = useState(0);
+const [requestsPage, setRequestsPage] = useState(0);
+
+const [totalBookings, setTotalBookings] = useState(0);
+
+const fetchRooms = async (page = 0) => {
+  try {
+    const response = await api.get(`/rooms?page=${page}&size=9`);
+    setRooms(response.data.content); // ← extract content array
+    setTotalRoomPages(response.data.totalPages);
+    setTotalRooms(response.data.totalElements);
+    setCurrentRoomPage(page);
+  } catch (error) {
+    console.error("Error fetching rooms:", error);
+  }
+};
   const handleAddRoom = async (e) => {
     e.preventDefault();
     setFormSuccess(""); setFormError("");
@@ -77,20 +163,24 @@ function AdminDashboard() {
       );
       setWalkInGuestName(""); setWalkInGuestEmail("");
       setWalkInRoomId(""); setWalkInCheckIn(""); setWalkInCheckOut("");
-      fetchBookings();
+     fetchActiveBookings(0);
+    fetchCancelledBookings(0);
+    fetchCancellationRequests(0);
+    fetchTotalBookings();
     } catch (err) {
       setWalkInError(err.response?.data?.message || "Failed to create walk-in booking.");
     }
   };
 
   const handleCancellationDecision = async (bookingId, approve) => {
-    try {
-      await api.patch(`/bookings/admin/${bookingId}/cancellation?approve=${approve}`);
-      fetchBookings();
-    } catch (err) {
-      console.error("Failed to process cancellation:", err);
-    }
-  };
+  try {
+    await api.patch(`/bookings/admin/${bookingId}/cancellation?approve=${approve}`);
+    fetchActiveBookings(0);
+    fetchCancelledBookings(0);
+    fetchCancellationRequests(0);
+    fetchTotalBookings();
+  } catch (err) { console.error("Failed to process cancellation:", err); }
+};
 
   const toggleMaintenance = async (roomId, status) => {
     try {
@@ -101,16 +191,9 @@ function AdminDashboard() {
     }
   };
 
-  // Derived data
-  const activeBookings = bookings.filter(
-    (b) => b.status === "CONFIRMED"
-  );
-  const cancellationRequests = bookings.filter(
-    (b) => b.status === "CANCELLATION_REQUESTED"
-  );
-  const cancelledBookings = bookings.filter(
-    (b) => b.status === "CANCELLED"
-  );
+
+
+
   const filteredRooms = rooms.filter((room) => {
     if (roomFilter === "AVAILABLE") return !room.underMaintenance;
     if (roomFilter === "MAINTENANCE") return room.underMaintenance;
@@ -124,15 +207,14 @@ function AdminDashboard() {
 
   const roomTypeIcon = { SINGLE: "🛏", DOUBLE: "🛏🛏", SUITE: "👑" };
 
-  const tabs = [
-    { key: "bookings", label: "Active Bookings", count: activeBookings.length },
-    { key: "requests", label: "Cancellation Requests", count: cancellationRequests.length },
-    { key: "cancelled", label: "Cancelled", count: cancelledBookings.length },
-    { key: "rooms", label: "Rooms", count: rooms.length },
-    { key: "walkin", label: "Walk-in Booking", count: null },
-    { key: "add", label: "+ Add Room", count: null },
-    
-  ];
+const tabs = [
+  { key: "bookings", label: "Active Bookings", count: activeBookingsTotal },
+  { key: "requests", label: "Cancellation Requests", count: requestsPages > 0 ? cancellationRequests.length : 0 },
+  { key: "cancelled", label: "Cancelled", count: cancelledPages > 0 ? cancelledBookings.length : 0 },
+  { key: "rooms", label: "Rooms", count: totalRooms },
+  { key: "walkin", label: "Walk-in Booking", count: null },
+  { key: "add", label: "+ Add Room", count: null },
+];
 
   // Reusable booking table
   const renderBookingTable = (list, statusClass, statusLabel) => (
@@ -176,15 +258,15 @@ function AdminDashboard() {
       {/* Stats */}
       <div className="admin-stats">
         <div className="stat-card">
-          <div className="stat-label">Total Bookings</div>
-          <div className="stat-value">{bookings.length}</div>
-          <div className="stat-sub">all time</div>
-        </div>
+  <div className="stat-label">Total Bookings</div>
+  <div className="stat-value">{totalBookings}</div>
+  <div className="stat-sub">all time</div>
+</div>
         <div className="stat-card">
-          <div className="stat-label">Active Bookings</div>
-          <div className="stat-value">{activeBookings.length}</div>
-          <div className="stat-sub">confirmed</div>
-        </div>
+  <div className="stat-label">Active Bookings</div>
+  <div className="stat-value">{activeBookingsTotal}</div>
+  <div className="stat-sub">confirmed</div>
+</div>
         <div className="stat-card">
           <div className="stat-label">Pending Requests</div>
           <div className="stat-value" style={{ color: cancellationRequests.length > 0 ? "#f57c00" : "#c8a96e" }}>
@@ -194,7 +276,7 @@ function AdminDashboard() {
         </div>
         <div className="stat-card">
           <div className="stat-label">Total Rooms</div>
-          <div className="stat-value">{rooms.length}</div>
+          <div className="stat-value">{totalRooms}</div>
           <div className="stat-sub">in system</div>
         </div>
       </div>
@@ -219,17 +301,26 @@ function AdminDashboard() {
 
       {/* Tab: Active Bookings */}
       {activeTab === "bookings" && (
-        <section>
-          {bookingsError && <p className="error-message">{bookingsError}</p>}
-          {activeBookings.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">📋</div>
-              <h3>No active bookings</h3>
-              <p>Bookings will appear here once guests make reservations</p>
-            </div>
-          ) : renderBookingTable(activeBookings, "confirmed", "Confirmed")}
-        </section>
-      )}
+  <section>
+    {bookingsError && <p className="error-message">{bookingsError}</p>}
+    {activeBookings.length === 0 ? (
+      <div className="empty-state">
+        <div className="empty-icon">📋</div>
+        <h3>No active bookings</h3>
+        <p>Bookings will appear here once guests make reservations</p>
+      </div>
+    ) : (
+      <>
+        {renderBookingTable(activeBookings, "confirmed", "Confirmed")}
+<Pagination
+  current={activeBookingsPage}
+  total={activeBookingsPages}
+  onPageChange={(page) => fetchActiveBookings(page)}
+/>
+      </>
+    )}
+  </section>
+)}
 
       {/* Tab: Cancellation Requests */}
       {activeTab === "requests" && (
@@ -297,6 +388,11 @@ function AdminDashboard() {
               <h3>No cancelled bookings</h3>
             </div>
           ) : renderBookingTable(cancelledBookings, "cancelled", "Cancelled")}
+          <Pagination
+  current={cancelledPage}
+  total={cancelledPages}
+  onPageChange={(page) => fetchCancelledBookings(page)}
+/>
         </section>
       )}
 
@@ -305,7 +401,7 @@ function AdminDashboard() {
         <section>
           <div className="filter-tabs" style={{ marginBottom: "24px" }}>
             {[
-              { key: "ALL", label: "All", count: rooms.length },
+              { key: "ALL", label: "All", count: totalRooms },
               { key: "AVAILABLE", label: "Active", count: rooms.filter((r) => !r.underMaintenance).length },
               { key: "MAINTENANCE", label: "Maintenance", count: rooms.filter((r) => r.underMaintenance).length },
             ].map((f) => (
@@ -364,7 +460,13 @@ function AdminDashboard() {
                 </div>
               ))}
             </div>
+            
           )}
+          <Pagination
+  current={currentRoomPage}
+  total={totalRoomPages}
+  onPageChange={(page) => fetchRooms(page)}
+/>
         </section>
       )}
 
@@ -517,6 +619,7 @@ function AdminDashboard() {
       )}
     </div>
   );
+
 }
 
 export default AdminDashboard;

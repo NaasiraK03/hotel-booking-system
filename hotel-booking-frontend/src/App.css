@@ -1477,3 +1477,40 @@ body {
   color: #aaa;
   text-align: right;
 }
+/* Pagination */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 20px;
+}
+
+.page-btn {
+  padding: 7px 14px;
+  border: 1px solid #e0d5c5;
+  border-radius: 8px;
+  background: #fff;
+  color: #888;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 36px;
+}
+
+.page-btn:hover:not(:disabled) {
+  border-color: #c8a96e;
+  color: #c8a96e;
+}
+
+.page-btn.active {
+  background: #c8a96e;
+  border-color: #c8a96e;
+  color: #fff;
+  font-weight: 600;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
