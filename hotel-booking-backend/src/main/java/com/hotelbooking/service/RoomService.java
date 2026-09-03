@@ -5,6 +5,8 @@ import com.hotelbooking.dto.response.RoomResponse;
 import com.hotelbooking.entity.Room;
 import com.hotelbooking.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,7 +66,6 @@ public class RoomService {
         roomRepository.delete(room);
     }
 
-    //Public: Get all rooms
     public List<RoomResponse> getAllRooms() {
         return roomRepository.findAll()
                 .stream()
@@ -72,14 +73,12 @@ public class RoomService {
                 .collect(Collectors.toList());
     }
 
-    //Public: Get room by id
     public RoomResponse getRoomById(Long id) {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
         return mapToResponse(room);
     }
 
-    //Public: Get available rooms by date
     public List<RoomResponse> getAvailableRooms(LocalDate checkIn, LocalDate checkOut) {
         return roomRepository.findAvailableRooms(checkIn, checkOut)
                 .stream()
@@ -87,7 +86,6 @@ public class RoomService {
                 .collect(Collectors.toList());
     }
 
-    //Mapper
     private RoomResponse mapToResponse(Room room) {
         return RoomResponse.builder()
                 .id(room.getId())
@@ -99,5 +97,10 @@ public class RoomService {
                 .amenities(room.getAmenities())
                 .underMaintenance(room.isUnderMaintenance())
                 .build();
+    }
+
+    public Page<RoomResponse> getAllRooms(Pageable pageable) {
+        return roomRepository.findAll(pageable)
+                .map(this::mapToResponse);
     }
 }

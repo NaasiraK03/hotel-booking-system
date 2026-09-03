@@ -1,12 +1,8 @@
 package com.hotelbooking.service;
 
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.hotelbooking.dto.request.WalkInBookingRequest;
 import com.hotelbooking.dto.request.BookingRequest;
+import com.hotelbooking.dto.request.WalkInBookingRequest;
 import com.hotelbooking.dto.response.BookingResponse;
 import com.hotelbooking.entity.Booking;
 import com.hotelbooking.entity.Room;
@@ -14,6 +10,12 @@ import com.hotelbooking.entity.User;
 import com.hotelbooking.repository.BookingRepository;
 import com.hotelbooking.repository.RoomRepository;
 import com.hotelbooking.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,6 +23,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -173,6 +176,16 @@ public class BookingService {
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+
+    public Page<BookingResponse> getAllBookings(Pageable pageable, String status) {
+        if (status != null && !status.isEmpty()) {
+            return bookingRepository.findByStatus(status, pageable)
+                    .map(this::mapToResponse);
+        }
+        return bookingRepository.findAll(pageable)
+                .map(this::mapToResponse);
     }
 
     //Cancel booking

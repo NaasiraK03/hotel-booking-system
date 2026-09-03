@@ -1,15 +1,19 @@
 package com.hotelbooking.controller;
 
 import com.hotelbooking.dto.request.BookingRequest;
+import com.hotelbooking.dto.request.WalkInBookingRequest;
 import com.hotelbooking.dto.response.BookingResponse;
 import com.hotelbooking.service.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import com.hotelbooking.dto.request.WalkInBookingRequest;
 
 import java.util.List;
 
@@ -71,10 +75,18 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.cancelBooking(id, email));
     }
 
-    //Admin: Get all bookings
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<BookingResponse>> getAllBookings() {
-        return ResponseEntity.ok(bookingService.getAllBookings());
+    public ResponseEntity<Page<BookingResponse>> getAllBookings(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "desc") String direction,
+            @RequestParam(required = false) String status) {
+        Sort sort = direction.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return ResponseEntity.ok(bookingService.getAllBookings(pageable, status));
     }
 }
