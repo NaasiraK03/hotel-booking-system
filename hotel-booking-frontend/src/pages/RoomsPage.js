@@ -1,210 +1,232 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 function RoomsPage() {
   const [rooms, setRooms] = useState([]);
-  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState("ALL");
+  const [checkIn, setCheckIn] = useState("");
+  const [checkOut, setCheckOut] = useState("");
+  const [searched, setSearched] = useState(false);
+  const [searchError, setSearchError] = useState("");
   const navigate = useNavigate();
+ const role = localStorage.getItem("role");
+  const today = new Date().toISOString().split("T")[0];
 
-  // Helper functions to fetch data
-  const fetchRooms = async () => {
+  const handleSearch = async () => {
+    setSearchError("");
+    if (!checkIn || !checkOut) {
+      setSearchError("Please select both check-in and check-out dates");
+      return;
+    }
+    if (checkOut <= checkIn) {
+      setSearchError("Check-out date must be after check-in date");
+      return;
+    }
     try {
-      const response = await api.get("/rooms");
+      setLoading(true);
+      const response = await api.get(
+        `/rooms/available?checkIn=${checkIn}&checkOut=${checkOut}`
+      );
       setRooms(response.data);
+      setSearched(true);
+      setFilter("ALL");
     } catch (error) {
-      console.error("Error fetching rooms data:", error);
+      console.error("Error fetching rooms:", error);
+      setSearchError("Failed to fetch rooms. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const fetchMyBookings = async () => {
-    try {
-      const response = await api.get("/bookings/my");
-      setBookings(response.data);
-    } catch (error) {
-      console.error("Error fetching your bookings:", error);
-    }
+  const roomTypeIcon = { SINGLE: "🛏", DOUBLE: "🛏🛏", SUITE: "👑" };
+
+  const filteredRooms = rooms.filter(
+    (room) => filter === "ALL" || room.type === filter
+  );
+
+  const counts = {
+    ALL: rooms.length,
+    SINGLE: rooms.filter((r) => r.type === "SINGLE").length,
+    DOUBLE: rooms.filter((r) => r.type === "DOUBLE").length,
+    SUITE: rooms.filter((r) => r.type === "SUITE").length,
   };
 
-  useEffect(() => {
-    fetchRooms();
-    fetchMyBookings();
-  }, []);
-
-  const handleCancel = async (bookingId) => {
-    const confirmCancel = window.confirm(
-      "Are you sure you want to cancel this booking?",
-    );
-    if (!confirmCancel) return;
-
-    try {
-      await api.delete(`/bookings/${bookingId}`);
-      alert("Booking cancelled successfully!");
-      fetchRooms();
-      fetchMyBookings();
-    } catch (error) {
-      console.error("Error cancelling booking:", error);
-      alert("Failed to cancel booking. Please try again.");
-    }
-  };
-
-  // Filter lists in memory before rendering
-  //const availableOnlyRooms = rooms.filter((room) => room.available);
-  const filteredRooms = rooms
-    .filter((room) => room.available)
-    .filter((room) => filter === "ALL" || room.type === filter);
-  const activeBookings = bookings.filter((b) => b.status !== "CANCELLED");
-  const cancelledBookings = bookings.filter((b) => b.status === "CANCELLED");
+  const nightsBetween = checkIn && checkOut
+    ? Math.round((new Date(checkOut) - new Date(checkIn)) / (1000 * 60 * 60 * 24))
+    : 0;
 
   return (
-    <div>
-      <div style={{ marginBottom: "20px", marginTop: "20px", display: "flex", gap: "10px" }}></div>
-      <div style={{ marginBottom: "20px", display: "flex", gap: "10px" }}>
+    <div className="page-container">
+
+      {/* Header */}
+      <div className="dashboard-header">
+        <div>
+          <h2>Find a Room</h2>
+          <p className="dashboard-subtitle">
+            Select your dates to see available rooms
+          </p>
+        </div>
+            {role !== "ADMIN" && (
+        <button className="btn-secondary" onClick={() => navigate("/dashboard")}>
+          My Bookings
+        </button>)}
+      </div>
+
+      {/* Date search card */}
+      <div className="date-search-card">
+        <div className="date-search-fields">
+          <div className="date-field">
+            <label>Check-in</label>
+            <input
+              type="date"
+              value={checkIn}
+              min={today}
+              onChange={(e) => {
+                setCheckIn(e.target.value);
+                setSearched(false);
+                if (checkOut && checkOut <= e.target.value) setCheckOut("");
+              }}
+            />
+          </div>
+          <div className="date-divider">→</div>
+          <div className="date-field">
+            <label>Check-out</label>
+            <input
+              type="date"
+              value={checkOut}
+              min={checkIn || today}
+              onChange={(e) => {
+                setCheckOut(e.target.value);
+                setSearched(false);
+              }}
+            />
+          </div>
+          {nightsBetween > 0 && (
+            <div className="nights-summary">
+              <span>{nightsBetween}</span>
+              <small>night{nightsBetween > 1 ? "s" : ""}</small>
+            </div>
+          )}
+        </div>
+        {searchError && <p className="search-error">{searchError}</p>}
         <button
-          onClick={() => setFilter("ALL")}
-          style={{
-            padding: "8px 20px",
-            borderRadius: "20px",
-            border: "1px solid #c8a96e",
-            backgroundColor: filter === "ALL" ? "#c8a96e" : "white",
-            color: filter === "ALL" ? "white" : "#c8a96e",
-            cursor: "pointer",
-          }}
+          className="btn-search"
+          onClick={handleSearch}
+          disabled={loading}
         >
-          All
-        </button>
-        <button
-          onClick={() => setFilter("SINGLE")}
-          style={{
-            padding: "8px 20px",
-            borderRadius: "20px",
-            border: "1px solid #c8a96e",
-            backgroundColor: filter === "SINGLE" ? "#c8a96e" : "white",
-            color: filter === "SINGLE" ? "white" : "#c8a96e",
-            cursor: "pointer",
-          }}
-        >
-          Single
-        </button>
-        <button
-          onClick={() => setFilter("DOUBLE")}
-          style={{
-            padding: "8px 20px",
-            borderRadius: "20px",
-            border: "1px solid #c8a96e",
-            backgroundColor: filter === "DOUBLE" ? "#c8a96e" : "white",
-            color: filter === "DOUBLE" ? "white" : "#c8a96e",
-            cursor: "pointer",
-          }}
-        >
-          Double
-        </button>
-        <button
-          onClick={() => setFilter("SUITE")}
-          style={{
-            padding: "8px 20px",
-            borderRadius: "20px",
-            border: "1px solid #c8a96e",
-            backgroundColor: filter === "SUITE" ? "#c8a96e" : "white",
-            color: filter === "SUITE" ? "white" : "#c8a96e",
-            cursor: "pointer",
-          }}
-        >
-          Suite
+          {loading ? "Searching..." : "Search Rooms"}
         </button>
       </div>
 
-      <div className="page-container">
-        {/* SECTION 1 — AVAILABLE ROOMS */}
-        <h2 className="section-title">Available Rooms</h2>
-        <div className="rooms-grid">
+      {/* Results */}
+      {loading && (
+        <div className="loading-state">
+          <div className="spinner" />
+          <p>Finding available rooms...</p>
+        </div>
+      )}
+
+      {searched && !loading && (
+        <>
+          {/* Filter tabs */}
+          <div className="filter-tabs">
+            {["ALL", "SINGLE", "DOUBLE", "SUITE"].map((tab) => (
+              <button
+                key={tab}
+                className={`filter-tab ${filter === tab ? "active" : ""}`}
+                onClick={() => setFilter(tab)}
+              >
+                {tab}
+                <span className="tab-count">{counts[tab]}</span>
+              </button>
+            ))}
+          </div>
+
           {filteredRooms.length === 0 ? (
-            <p>No rooms available at the moment.</p>
-          ) : (
-            filteredRooms.map((room) => (
-              <div className="room-card" key={room.id}>
-               <div style={{
-    height: "80px",
-    background: room.type === "SINGLE" ? "#1a1a2e" :
-                room.type === "DOUBLE" ? "#c8a96e" : "#2d2d44",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "white",
-    fontSize: "1.1rem",
-    fontWeight: "bold",
-    letterSpacing: "2px"
-}}>
-    {room.type}
-</div>
-                <div className="room-card-body">
-                  <h3>Room {room.roomNumber}</h3>
-                  <p>🛏 Type: {room.type}</p>
-                  <p>👥 Capacity: {room.capacity} persons</p>
-                  <p>✨ {room.amenities}</p>
-                  <p className="price">₹{room.pricePerNight} / night</p>
-                  <p className="status-available">● Available</p>
-                  <button
-                    className="btn-book"
-                    onClick={() => navigate(`/booking/${room.id}`)}
-                  >
-                    Book Now
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* SECTION 2 — MY ACTIVE BOOKINGS */}
-        <h2 className="section-title">My Booked Rooms</h2>
-        <div className="bookings-grid">
-          {activeBookings.length === 0 ? (
-            <p>You have no active bookings.</p>
-          ) : (
-            activeBookings.map((booking) => (
-              <div className="booking-card" key={booking.id}>
-                <h3>📋 {booking.bookingReference}</h3>
-                <p>🏨 Room: {booking.roomNumber}</p>
-                <p>🛏 Type: {booking.roomType}</p>
-                <p>📅 Check-in: {booking.checkInDate}</p>
-                <p>📅 Check-out: {booking.checkOutDate}</p>
-                <p className="price">Total: ₹{booking.totalPrice}</p>
-                <p className="status-available">● {booking.status}</p>
-                <button
-                  className="btn-cancel"
-                  onClick={() => handleCancel(booking.id)}
-                >
-                  Cancel Booking
+            <div className="empty-state">
+              <div className="empty-icon">🏨</div>
+              <h3>No {filter !== "ALL" ? filter.toLowerCase() : ""} rooms available</h3>
+              <p>Try different dates or a different room type</p>
+              {filter !== "ALL" && (
+                <button className="btn-primary" onClick={() => setFilter("ALL")}>
+                  View All Types
                 </button>
-              </div>
-            ))
-          )}
-        </div>
-
-        {/* SECTION 3 — CANCELLED BOOKINGS */}
-        <h2 className="section-title">Cancelled Bookings</h2>
-        <div className="bookings-grid">
-          {cancelledBookings.length === 0 ? (
-            <p>No cancelled bookings.</p>
+              )}
+            </div>
           ) : (
-            cancelledBookings.map((booking) => (
-              <div className="booking-card" key={booking.id}>
-                <h3>📋 {booking.bookingReference}</h3>
-                <p>🏨 Room: {booking.roomNumber}</p>
-                <p>📅 Check-in: {booking.checkInDate}</p>
-                <p>📅 Check-out: {booking.checkOutDate}</p>
-                <p className="price">Total: ₹{booking.totalPrice}</p>
-                <p className="status-booked">● CANCELLED</p>
-                <button className="btn-cancel" disabled>
-                  Cancelled
-                </button>
+            <>
+              <p className="dashboard-subtitle" style={{ marginBottom: "16px" }}>
+                {filteredRooms.length} room{filteredRooms.length !== 1 ? "s" : ""} available
+                {checkIn && checkOut && ` · ${checkIn} to ${checkOut}`}
+              </p>
+              <div className="rooms-grid">
+                {filteredRooms.map((room) => (
+                  <div className="room-card" key={room.id}>
+                    <div className={`room-card-header room-type-${room.type.toLowerCase()}`}>
+                      <span className="room-type-icon">{roomTypeIcon[room.type]}</span>
+                      <span className="room-type-label">{room.type}</span>
+                      <span className="room-available-dot">● Available</span>
+                    </div>
+                    <div className="room-card-body">
+                      <div className="room-number">Room {room.roomNumber}</div>
+                      <div className="room-meta">
+                        <div className="room-meta-item">
+                          <span className="meta-label">Capacity</span>
+                          <span className="meta-value">
+                            {room.capacity} person{room.capacity > 1 ? "s" : ""}
+                          </span>
+                        </div>
+                        <div className="room-meta-item">
+                          <span className="meta-label">Type</span>
+                          <span className="meta-value">{room.type}</span>
+                        </div>
+                      </div>
+                      {room.amenities && (
+                        <p className="room-amenities">✨ {room.amenities}</p>
+                      )}
+                      <div className="room-card-footer">
+                        <div className="room-price">
+                          <span className="price-amount">
+                            ₹{room.pricePerNight?.toLocaleString("en-IN")}
+                          </span>
+                          <span className="price-label">/ night</span>
+                        </div>
+                      {nightsBetween > 0 && role !== "ADMIN" && (
+  <span className="total-estimate">
+    ₹{(room.pricePerNight * nightsBetween).toLocaleString("en-IN")} total
+  </span>
+)}
+                        {role !== "ADMIN" && (
+                        <button
+                          className="btn-book"
+                          onClick={() =>
+                            navigate(`/booking/${room.id}`, {
+                              state: { checkIn, checkOut },
+                            })
+                          }
+                        >
+                          Book Now
+                        </button>)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))
+            </>
           )}
+        </>
+      )}
+
+      {/* Initial state — not searched yet */}
+      {!searched && !loading && (
+        <div className="empty-state">
+          <div className="empty-icon">📅</div>
+          <h3>Select your dates</h3>
+          <p>Choose check-in and check-out dates to see available rooms</p>
         </div>
-      </div>
+      )}
     </div>
   );
 }
