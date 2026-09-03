@@ -6,7 +6,9 @@ import com.hotelbooking.entity.Room;
 import com.hotelbooking.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,7 +18,7 @@ public class RoomService {
 
     private final RoomRepository roomRepository;
 
-    // ── Admin: Create room ──────────────────────────────────────────────
+    //Admin: Create room
     public RoomResponse createRoom(RoomRequest request) {
         if (roomRepository.findByRoomNumber(request.getRoomNumber()).isPresent()) {
             throw new RuntimeException("Room number already exists");
@@ -28,12 +30,21 @@ public class RoomService {
                 .capacity(request.getCapacity())
                 .description(request.getDescription())
                 .amenities(request.getAmenities())
-                .isAvailable(request.isAvailable())
+                .underMaintenance(false)
                 .build();
         return mapToResponse(roomRepository.save(room));
     }
 
-    // ── Admin: Update room ──────────────────────────────────────────────
+    //Admin: Toggle maintenance
+    @Transactional
+    public RoomResponse toggleMaintenance(Long id, boolean status) {
+        Room room = roomRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Room not found"));
+        room.setUnderMaintenance(status);
+        return mapToResponse(roomRepository.save(room));
+    }
+
+    //Admin: Update room
     public RoomResponse updateRoom(Long id, RoomRequest request) {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
@@ -43,18 +54,17 @@ public class RoomService {
         room.setCapacity(request.getCapacity());
         room.setDescription(request.getDescription());
         room.setAmenities(request.getAmenities());
-        room.setAvailable(request.isAvailable());
         return mapToResponse(roomRepository.save(room));
     }
 
-    // ── Admin: Delete room ──────────────────────────────────────────────
+    //Admin: Delete room
     public void deleteRoom(Long id) {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
         roomRepository.delete(room);
     }
 
-    // ── Public: Get all rooms ───────────────────────────────────────────
+    //Public: Get all rooms
     public List<RoomResponse> getAllRooms() {
         return roomRepository.findAll()
                 .stream()
@@ -62,22 +72,22 @@ public class RoomService {
                 .collect(Collectors.toList());
     }
 
-    // ── Public: Get room by id ──────────────────────────────────────────
+    //Public: Get room by id
     public RoomResponse getRoomById(Long id) {
         Room room = roomRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Room not found"));
         return mapToResponse(room);
     }
 
-    // ── Public: Search available rooms ─────────────────────────────────
-    public List<RoomResponse> getAvailableRooms() {
-        return roomRepository.findByIsAvailableTrue()
+    //Public: Get available rooms by date
+    public List<RoomResponse> getAvailableRooms(LocalDate checkIn, LocalDate checkOut) {
+        return roomRepository.findAvailableRooms(checkIn, checkOut)
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    // ── Mapper ──────────────────────────────────────────────────────────
+    //Mapper
     private RoomResponse mapToResponse(Room room) {
         return RoomResponse.builder()
                 .id(room.getId())
@@ -87,7 +97,7 @@ public class RoomService {
                 .capacity(room.getCapacity())
                 .description(room.getDescription())
                 .amenities(room.getAmenities())
-                .isAvailable(room.isAvailable())
+                .underMaintenance(room.isUnderMaintenance())
                 .build();
     }
 }

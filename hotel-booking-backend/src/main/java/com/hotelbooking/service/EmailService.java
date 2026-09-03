@@ -29,7 +29,7 @@ public class EmailService {
             mailSender.send(message);
             System.out.println("Email sent to: " + guestEmail);
         } catch (Exception e) {
-            System.err.println("Email failed: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     private String buildEmailBody(String guestName, String bookingReference,

@@ -18,5 +18,5 @@ public class RoomResponse {
     private Integer capacity;
     private String description;
     private String amenities;
-    private boolean isAvailable;
+    private boolean underMaintenance;
 }

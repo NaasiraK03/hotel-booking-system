@@ -1,13 +1,18 @@
 package com.hotelbooking.dto.request;
 
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.FutureOrPresent;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.time.LocalDate;
 
 @Data
-public class BookingRequest {
+public class WalkInBookingRequest {
+
+    @NotBlank(message = "Guest name is required")
+    private String guestName;
+
+    @NotBlank(message = "Guest email is required")
+    @Email(message = "Invalid email format")
+    private String guestEmail;
 
     @NotNull(message = "Room ID is required")
     private Long roomId;

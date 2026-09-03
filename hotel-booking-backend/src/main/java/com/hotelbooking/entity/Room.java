@@ -34,10 +34,8 @@ public class Room {
 
     private String amenities;
 
-    @Column(columnDefinition = "boolean default true")
-    private boolean isAvailable;
-
-
+    @Column(nullable = false)
+    private boolean underMaintenance = false;
 
 
 

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -26,7 +27,13 @@ public class RoomController {
             @Valid @RequestBody RoomRequest request) {
         return ResponseEntity.ok(roomService.createRoom(request));
     }
-
+    @PatchMapping("/admin/{id}/maintenance")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<RoomResponse> toggleMaintenance(
+            @PathVariable Long id,
+            @RequestParam boolean status) {
+        return ResponseEntity.ok(roomService.toggleMaintenance(id, status));
+    }
     @PutMapping("/admin/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RoomResponse> updateRoom(
@@ -54,7 +61,9 @@ public class RoomController {
     }
 
     @GetMapping("/available")
-    public ResponseEntity<List<RoomResponse>> getAvailableRooms() {
-        return ResponseEntity.ok(roomService.getAvailableRooms());
+    public ResponseEntity<List<RoomResponse>> getAvailableRooms(
+            @RequestParam LocalDate checkIn,
+            @RequestParam LocalDate checkOut) {
+        return ResponseEntity.ok(roomService.getAvailableRooms(checkIn, checkOut));
     }
 }
